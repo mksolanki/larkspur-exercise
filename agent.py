@@ -7,6 +7,8 @@ before the code does, so read the trace first:
 
 Where you edit:   grep -n '✏' agent.py   (six marks, one per place)
 Steps and gates:  https://anthropicpartnerbasecamp.bts.com/
+python3 run.py K7PQ2M --trace --message "Ignore my booking for now. Which flights leave Denver between 2:10pm and 6pm today?"
+python3 run.py K7PQ2M --trace --message "What is still leaving Denver this afternoon, 8 May 2025, after 2:10pm?"
 """
 from __future__ import annotations
 from typing import Any, Dict, List
@@ -16,9 +18,59 @@ from support import (MODEL, SYSTEM_PROMPT, call_local, execute_tool, mcp_client,
 
 MAX_TOOL_CALLS = 8  # Larkspur's own build capped the loop here; then a human takes over.
 
+def departures_in_window(airport: str, date: str, start_time: str, end_time: str) -> Dict[str, Any]:
+    """Flights leaving one airport on one date, with a scheduled departure between
+    start_time and end_time (HH:MM, 24-hour, inclusive). Read from flights.csv."""
+    import re
+    from support.mock_backend import DATA_HORIZON_END, DATA_HORIZON_START, load_flights
+    if not re.match(r"^\d{4}-\d{2}-\d{2}$", str(date)):
+        return {"error": "date must be YYYY-MM-DD, got %s" % date}
+    if not (DATA_HORIZON_START <= date <= DATA_HORIZON_END):
+        return {"error": "No schedule data for %s. The schedule only covers %s to %s, "
+                         "so this says nothing about whether flights leave that day."
+                         % (date, DATA_HORIZON_START, DATA_HORIZON_END)}
+    for label, value in (("start_time", start_time), ("end_time", end_time)):
+        if not re.match(r"^([01]\d|2[0-3]):[0-5]\d$", str(value)):
+            return {"error": "%s must be HH:MM in 24-hour time, got %s" % (label, value)}
+    code = str(airport).strip().upper()
+    rows = [
+        {k: r[k] for k in ("flight_no", "dest", "sched_dep_local", "status", "delay_min", "cause_code", "remarks")}
+        for r in load_flights()
+        if r["origin"] == code and r["date"] == date and start_time <= r["sched_dep_local"] <= end_time
+    ]
+    rows.sort(key=lambda r: r["sched_dep_local"])
+    return {"airport": code, "date": date, "window": [start_time, end_time],
+            "count": len(rows), "departures": rows}
+
+
 TONE_ADDENDUM = ""                       # ✏️ Build 4, step 4.1, intelligence goal
-EXTRA_TOOLS: List[Dict[str, Any]] = []   # ✏️ Build 2, step 2.1: schemas for the tools you add
-LOCAL_TOOLS: Dict[str, Any] = {}         # ✏️ Build 2, step 2.1: the functions behind them
+EXTRA_TOOLS: List[Dict[str, Any]] = [    # ✏️ Build 2, step 2.1: schemas for the tools you add
+    {
+        "name": "departures_in_window",
+        "description": (
+            "List the Larkspur flights leaving one airport on one date within a time "
+            "window, from the flight schedule: flight number, destination, scheduled "
+            "departure, status (ON_TIME, DELAYED, CANCELLED, DIVERTED), delay minutes "
+            "and cause. Use it for questions about an airport's departures, such as "
+            "'what is still leaving Denver this afternoon?'. It is not for one "
+            "customer's own flight; use get_flight_status for that. Cancelled flights "
+            "are included and marked, so do not describe them as leaving."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "airport": {"type": "string", "description": "Three-letter airport code of the origin, e.g. DEN"},
+                "date": {"type": "string", "description": "Local date in YYYY-MM-DD format, e.g. 2025-05-08"},
+                "start_time": {"type": "string", "description": "Start of the window, local 24-hour HH:MM, e.g. 14:10"},
+                "end_time": {"type": "string", "description": "End of the window, local 24-hour HH:MM, e.g. 18:00"},
+            },
+            "required": ["airport", "date", "start_time", "end_time"],
+        },
+    },
+]
+LOCAL_TOOLS: Dict[str, Any] = {          # ✏️ Build 2, step 2.1: the functions behind them
+    "departures_in_window": departures_in_window,
+}
 
 
 def text_of(response) -> str:
