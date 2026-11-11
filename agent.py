@@ -120,17 +120,20 @@ def build_tools() -> List[Dict[str, Any]]:                 # ✏️ Build 1, ste
                 "type": "object",
                 "properties": {
                     "flight_no": {"type": "string"},
-                    "date": {"type": "string", "description": "MM/DD/YYYY"},
+                    "date": {"type": "string", "description": "YYYY-MM-DD"},
                 },
                 "required": ["flight_no", "date"],
             },
         },
         {
             "name": "search_alternatives",
-            "description": "search",
+            "description": "Find alternative Larkspur flights when a customer's flight is cancelled or disrupted. Returns a list of options, each with an option_id to pass to hold_seat",
             "input_schema": {
                 "type": "object",
-                "properties": {"pnr": {"type": "string"}},
+                "properties": {
+                    "pnr": {"type": "string"},
+                    "option_id": {"type": "string"},
+                },
                 "required": ["pnr"],
             },
         },
