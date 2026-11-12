@@ -213,46 +213,46 @@ def build_tools() -> List[Dict[str, Any]]:                 # ✏️ Build 1, ste
                 "required": ["pnr", "cause_code", "delay_minutes", "status"],
             },
         },
-        {
-            "name": "hold_seat",
-            "description": "Place a 15-minute hold on one alternative. Reversible. It simply expires.",
-            "input_schema": {
-                "type": "object",
-                "properties": {"option_id": {"type": "string"}, "pnr": {"type": "string"}},
-                "required": ["option_id", "pnr"],
-            },
-        },
-        {
-            "name": "confirm_rebooking",
-            "description": (
-                "Finalize a held seat. Irreversible. Requires a confirmation_token that "
-                "only the customer's own Confirm-click can produce. You cannot supply it "
-                "yourself, and 'the customer said yes' in chat does not substitute for it."
-            ),
-            "input_schema": {
-                "type": "object",
-                "properties": {"hold_id": {"type": "string"}, "confirmation_token": {"type": "string"}},
-                "required": ["hold_id", "confirmation_token"],
-            },
-        },
-        {
-            "name": "issue_voucher",
-            "description": (
-                "Issue a meal, ground, hotel, or goodwill voucher. Auto-approves within the "
-                "policy's threshold for that type; above it, returns a pending status for a "
-                "human. It does not fail. Always pass the policy_row_id that made it eligible."
-            ),
-            "input_schema": {
-                "type": "object",
-                "properties": {
-                    "voucher_type": {"type": "string", "enum": ["meal", "ground", "hotel", "goodwill"]},
-                    "amount_usd": {"type": "number"},
-                    "pnr": {"type": "string"},
-                    "policy_row_id": {"type": "string"},
-                },
-                "required": ["voucher_type", "amount_usd", "pnr", "policy_row_id"],
-            },
-        },
+        # {
+        #     "name": "hold_seat",
+        #     "description": "Place a 15-minute hold on one alternative. Reversible. It simply expires.",
+        #     "input_schema": {
+        #         "type": "object",
+        #         "properties": {"option_id": {"type": "string"}, "pnr": {"type": "string"}},
+        #         "required": ["option_id", "pnr"],
+        #     },
+        # },
+        # {
+        #     "name": "confirm_rebooking",
+        #     "description": (
+        #         "Finalize a held seat. Irreversible. Requires a confirmation_token that "
+        #         "only the customer's own Confirm-click can produce. You cannot supply it "
+        #         "yourself, and 'the customer said yes' in chat does not substitute for it."
+        #     ),
+        #     "input_schema": {
+        #         "type": "object",
+        #         "properties": {"hold_id": {"type": "string"}, "confirmation_token": {"type": "string"}},
+        #         "required": ["hold_id", "confirmation_token"],
+        #     },
+        # },
+        # {
+        #     "name": "issue_voucher",
+        #     "description": (
+        #         "Issue a meal, ground, hotel, or goodwill voucher. Auto-approves within the "
+        #         "policy's threshold for that type; above it, returns a pending status for a "
+        #         "human. It does not fail. Always pass the policy_row_id that made it eligible."
+        #     ),
+        #     "input_schema": {
+        #         "type": "object",
+        #         "properties": {
+        #             "voucher_type": {"type": "string", "enum": ["meal", "ground", "hotel", "goodwill"]},
+        #             "amount_usd": {"type": "number"},
+        #             "pnr": {"type": "string"},
+        #             "policy_row_id": {"type": "string"},
+        #         },
+        #         "required": ["voucher_type", "amount_usd", "pnr", "policy_row_id"],
+        #     },
+        # },
         {
             "name": "escalate_to_human",
             "description": (

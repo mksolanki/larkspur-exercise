@@ -8,7 +8,7 @@ Number: 61,706 to 64,120 tokens in, total of the five tickets.
 Safety check: It holds a seat but never books it, only the customer's own click does. We saw it in the trace for K7PQ2M.
 Next: Let the agent answer customers in Spanish, not only in English.
 Still broken: When a customer sends two booking codes in one message, the agent only looks up the first one.
-Lever: <cost | speed | intelligence>
+Lever: cost
 
 ## Priya asked
 
